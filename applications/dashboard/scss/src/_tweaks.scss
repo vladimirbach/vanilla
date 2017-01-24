@@ -41,10 +41,6 @@
   }
 }
 
-.filter-date {
-  min-width: to-rem(184);
-}
-
 table,
 form {
   h2 {
@@ -62,6 +58,10 @@ body {
 
 ul {
   margin-bottom: 0;
+}
+
+.drop-enabled {
+  @extend .active;
 }
 
 // TODO: I don't know where to put this yet.

@@ -58,12 +58,12 @@ blockquote, q {
 }
 
 textarea, input[type=text] {
-  -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
 
 .textarea-autosize {
-  transition: height 0.1s ease;
+  -webkit-transition: height 0.1s ease;
+          transition: height 0.1s ease;
   resize: none !important;
 }
 
@@ -580,7 +580,7 @@ div.FileUpload .CurrentImage {
   opacity: 0;
   filter: alpha(opacity=0);
   -webkit-transform: translate(-300px, 0) scale(4);
-  transform: translate(-300px, 0) scale(4);
+          transform: translate(-300px, 0) scale(4);
   direction: ltr;
   cursor: pointer;
 }
@@ -1077,9 +1077,9 @@ body > #Frame > .Head {
 
 .OptionsTitle {
   -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
   background: url("images/ui_sprites.png") no-repeat 0 -101px;
   padding: 0;
   width: 21px;
@@ -1847,7 +1847,6 @@ overflow: hidden;
 
 .SearchForm .InputBox {
   width: 100%;
-  -moz-box-sizing: border-box;
   box-sizing: border-box;
   font-size: 14px;
   padding: 6px 25px 6px 8px;
@@ -5260,7 +5259,6 @@ input + .ReactSprite {
 
 /* Token input */
 ul.token-input-list {
-  -moz-box-sizing: border-box;
   box-sizing: border-box;
   border: 1px solid #aaa;
   color: #333;
@@ -5531,7 +5529,8 @@ div.token-input-dropdown ul li.token-input-selected-dropdown-item {
 }
 
 .SocialIcon {
-  transition: background-color 100ms;
+  -webkit-transition: background-color 100ms;
+          transition: background-color 100ms;
 }
 
 .SocialIcon .Icon,
@@ -5771,7 +5770,6 @@ Styleguide Definitions
 .item-attachment .dl-columns dd {
   float: left;
   padding: 0 10px;
-  -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
 
@@ -5993,7 +5991,8 @@ Styleguide Attachments
 }
 
 .twitter-card-loaded {
-  transition: all 0.2s ease;
+  -webkit-transition: all 0.2s ease;
+          transition: all 0.2s ease;
   opacity: 1;
 }
 
@@ -6017,7 +6016,7 @@ Styleguide Attachments
 
 .highlight-effect {
   -webkit-animation: highlight .8s;
-  animation: highlight .8s;
+          animation: highlight .8s;
 }
 
 /* Groups section tweaks */
@@ -6072,8 +6071,8 @@ Styleguide Attachments
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+   -ms-user-select: none;
+       user-select: none;
   -webkit-user-select: none;
 }
 
