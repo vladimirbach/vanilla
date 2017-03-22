@@ -1519,9 +1519,11 @@ EOT;
 
             $nofollow = (self::$DisplayNoFollow) ? ' rel="nofollow"' : '';
 
-            $Result = <<<EOT
-<a href="$Url" target="_blank"$nofollow>$Text</a>$Punc
-EOT;
+        if (c('Garden.Format.WarnLeaving', false)) {
+            $domain = parse_url($url, PHP_URL_HOST);
+            if (isTrustedDomain($domain)) {
+                return '<a href="'.url('/home/leaving?target='.$url).'" class="Popup">'.$text.'</a>'.$punc;
+            }
         }
         return $Result;
     }
