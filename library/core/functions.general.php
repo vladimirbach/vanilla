@@ -3079,6 +3079,32 @@ if (!function_exists('safeImage')) {
     }
 }
 
+if (!function_exists('matchesTrustedDomain')) {
+    /**
+     * Tests whether a given url matches one of our trusted domains.
+     *
+     * @param string $url The url to test.
+     * @return bool Whether the url matches a trusted domain.
+     */
+    function matchesTrustedDomain($url = '') {
+        $url = url($url, true);
+
+        static $trustedDomains = [];
+
+        if (empty($trustedDomains)) {
+            $trustedDomains = trustedDomains();
+        }
+
+        foreach ($trustedDomains as $trustedDomain) {
+            if (urlMatch($trustedDomain, $url)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
 if (!function_exists('safeRedirect')) {
     /**
      * Redirect, but only to a safe domain.
