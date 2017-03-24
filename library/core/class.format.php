@@ -1154,38 +1154,34 @@ class Gdn_Format {
     /**
      * Formats the anchor tags around the links in text.
      *
-     * @param mixed $Mixed An object, array, or string to be formatted.
+     * @param mixed $mixed An object, array, or string to be formatted.
      * @return string
      */
-    public static function links($Mixed) {
+    public static function links($mixed) {
         if (!c('Garden.Format.Links', true)) {
-            return $Mixed;
+            return $mixed;
         }
 
-        if (!is_string($Mixed)) {
-            return self::to($Mixed, 'Links');
+        if (!is_string($mixed)) {
+            return self::to($mixed, 'Links');
+        }
+
+        if (unicodeRegexSupport()) {
+            $regex = "`(?:(</?)([!a-z]+))|(/?\s*>)|((?:https?|ftp)://[@\p{L}\p{N}\x21\x23-\x27\x2a-\x2e\x3a\x3b\/\x3f-\x7a\x7e\x3d]+)`iu";
         } else {
-            if (unicodeRegexSupport()) {
-                $Regex = "`(?:(</?)([!a-z]+))|(/?\s*>)|((?:https?|ftp)://[@\p{L}\p{N}\x21\x23-\x27\x2a-\x2e\x3a\x3b\/\x3f-\x7a\x7e\x3d]+)`iu";
-            } else {
-                $Regex = "`(?:(</?)([!a-z]+))|(/?\s*>)|((?:https?|ftp)://[@a-z0-9\x21\x23-\x27\x2a-\x2e\x3a\x3b\/\x3f-\x7a\x7e\x3d]+)`i";
-            }
-
-            self::linksCallback(null);
-
-            $Mixed = Gdn_Format::replaceButProtectCodeBlocks(
-                $Regex,
-                array('Gdn_Format', 'LinksCallback'),
-                $Mixed,
-                true
-            );
-
-            Gdn::pluginManager()->fireAs('Format')->fireEvent('Links', array(
-                'Mixed' => &$Mixed
-            ));
-
-            return $Mixed;
+            $regex = "`(?:(</?)([!a-z]+))|(/?\s*>)|((?:https?|ftp)://[@a-z0-9\x21\x23-\x27\x2a-\x2e\x3a\x3b\/\x3f-\x7a\x7e\x3d]+)`i";
         }
+
+        $mixed = Gdn_Format::replaceButProtectCodeBlocks(
+            $regex,
+            ['Gdn_Format', 'linksCallback'],
+            $mixed,
+            true
+        );
+
+        Gdn::pluginManager()->fireAs('Format')->fireEvent('Links', ['Mixed' => &$mixed]);
+
+        return $mixed;
     }
 
     /**
@@ -1221,14 +1217,13 @@ class Gdn_Format {
     }
 
     /**
-     * Transform match to clickable links or to embedded equivalent.
+     * Transform url to embedded representation.
      *
-     * URLs are typically matched against, which are then translated into a
-     * clickable link or transformed into their equivalent embed, if supported.
-     * There is a universal config to disable automatic embedding.
+     * Takes a url and tests to see if we can embed it in a post. If so, returns the the embed code. Otherwise,
+     * returns an empty string.
      *
-     * @param array $Matches Captured and grouped matches against string.
-     * @return string
+     * @param string $url The url to test whether it's embeddable.
+     * @return string The embed code for the given url.
      */
     private static function embedReplacement($url) {
 
@@ -1395,7 +1390,7 @@ EOT;
             case 'Vine':
                 return <<<EOT
 <div class="vine-video VideoWrap">
-   <iframe class="vine-embed" src="//vine.co/v/{$Matches[1]}/embed/simple" width="320" height="320" frameborder="0"></iframe><script async src="//platform.vine.co/static/scripts/embed.js" charset="utf-8"></script>
+   <iframe class="vine-embed" src="//vine.co/v/{$matches[1]}/embed/simple" width="320" height="320" frameborder="0"></iframe><script async src="//platform.vine.co/static/scripts/embed.js" charset="utf-8"></script>
 </div>
 EOT;
                 break;
@@ -1403,7 +1398,7 @@ EOT;
             case 'Instagram':
                 return <<<EOT
 <div class="instagram-video VideoWrap">
-   <iframe src="//instagram.com/p/{$Matches[1]}/embed/" width="412" height="510" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
+   <iframe src="//instagram.com/p/{$matches[1]}/embed/" width="412" height="510" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
 </div>
 EOT;
                 break;
@@ -1487,37 +1482,41 @@ EOT;
             return $matches[0];
         }
 
+        return '';
+    }
 
+    /**
+     * Replaces text or anchor urls with either their embed code, or sanitized and wrapped in an anchor.
+     *
+     * @param $matches
+     * @return string The anchor or embed code for the url.
+     */
+    public static function linksCallback($matches) {
+        static $inTag = 0;
+        static $inAnchor = false;
 
-        // Unformatted links
-        } elseif (!self::$FormatLinks) {
-            $Result = $Url;
+        $inOut = $matches[1];
+        $tag = strtolower($matches[2]);
 
-        // Formatted links
-        } else {
-            // Strip punctuation off of the end of the url.
-            $Punc = '';
-
-            // Special case where &nbsp; is right after an url and is not part of it!
-            // This can happen in WYSIWYG format if the url is the last text of the body.
-            while(stringEndsWith($Url, '&nbsp;')) {
-                $Url = substr($Url, 0, -6);
-                $Punc .= '&nbsp;';
+        if ($inOut == '<') {
+            $inTag++;
+            if ($tag == 'a') {
+                $inAnchor = true;
             }
-
-            if (preg_match('`^(.+)([.?,;:])$`', $Url, $Matches)) {
-                $Url = $Matches[1];
-                $Punc = $Matches[2].$Punc;
+        } elseif ($inOut == '</') {
+            $inTag++;
+            if ($tag == 'a') {
+                $inAnchor = false;
             }
+        } elseif ($matches[3]) {
+            $inTag--;
+        }
 
-            // Get human-readable text from url.
-            $Text = $Url;
-            if (strpos($Text, '%') !== false) {
-                $Text = rawurldecode($Text);
-                $Text = htmlspecialchars($Text, ENT_QUOTES, 'UTF-8');
-            }
+        if (!isset($matches[4]) || $inTag || $inAnchor) {
+            return $matches[0];
+        }
 
-            $nofollow = (self::$DisplayNoFollow) ? ' rel="nofollow"' : '';
+        $url = $matches[4];
 
         if (c('Garden.Format.WarnLeaving', false)) {
             $domain = parse_url($url, PHP_URL_HOST);
@@ -1525,7 +1524,44 @@ EOT;
                 return '<a href="'.url('/home/leaving?target='.$url).'" class="Popup">'.$text.'</a>'.$punc;
             }
         }
-        return $Result;
+
+        // Unformatted links
+        if (!self::$FormatLinks) {
+            return $url;
+        }
+
+        // Strip punctuation off of the end of the url.
+        $punc = '';
+
+        // Special case where &nbsp; is right after an url and is not part of it!
+        // This can happen in WYSIWYG format if the url is the last text of the body.
+        while (stringEndsWith($url, '&nbsp;')) {
+            $url = substr($url, 0, -6);
+            $punc .= '&nbsp;';
+        }
+
+        if (preg_match('`^(.+)([.?,;:])$`', $url, $matches)) {
+            $url = $matches[1];
+            $punc = $matches[2].$punc;
+        }
+
+        // Get human-readable text from url.
+        $text = $url;
+        if (strpos($text, '%') !== false) {
+            $text = rawurldecode($text);
+            $text = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+        }
+
+        $nofollow = (self::$DisplayNoFollow) ? ' rel="nofollow"' : '';
+
+        if (c('Garden.Format.WarnLeaving', false)) {
+            $domain = parse_url($url, PHP_URL_HOST);
+            if (!isTrustedDomain($domain)) {
+                return '<a href="'.url('/home/leaving?target='.$url).'" class="Popup">'.$text.'</a>'.$punc;
+            }
+        }
+
+        return '<a href="'.$url.'"'.$nofollow.'>'.$text.'</a>'.$punc;
     }
 
     /**
