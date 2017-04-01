@@ -256,7 +256,7 @@ class DraftModel extends Gdn_Model {
      */
     public function updateUser($UserID) {
         // Retrieve a draft count
-        $CountDrafts = $this->getCount($UserID);
+        $CountDrafts = $this->getCountByUser($UserID);
 
         // Update CountDrafts column of user table fot this user
         Gdn::userModel()->setField($UserID, 'CountDrafts', $CountDrafts);
