@@ -71,9 +71,7 @@ class ModerationController extends VanillaController {
                     if (!ArrayHasValue($CheckedComments, $Check['checkId'])) {
                         $CheckedComments[$DiscussionID][] = $Check['checkId'];
                     }
-                } else {
-                    RemoveValueFromArray($CheckedComments[$DiscussionID], $Check['checkId']);
-                }
+                } 
             }
 
             if (count($CheckedComments[$DiscussionID]) == 0) {
@@ -162,9 +160,7 @@ class ModerationController extends VanillaController {
                     if (!ArrayHasValue($CheckedDiscussions, $Check['checkId'])) {
                         $CheckedDiscussions[] = $Check['checkId'];
                     }
-                } else {
-                    RemoveValueFromArray($CheckedDiscussions, $Check['checkId']);
-                }
+                } 
             }
 
             Gdn::userModel()->saveAttribute($Session->User->UserID, 'CheckedDiscussions', $CheckedDiscussions);
